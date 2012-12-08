@@ -1,0 +1,13 @@
+BindList = ID
+         | ID "," BindList
+         ;
+Expression = AbstractionExpression ;
+AbstractionExpression = ApplicationExpression
+                      | "\\" BindList "." AbstractionExpression
+                      ;
+ApplicationExpression = PrimaryExpression
+                      | PrimaryExpression ApplicationExpression
+                      ;
+PrimaryExpression = "(" Expression ")"
+                  | ID
+                  ;

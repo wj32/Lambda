@@ -1,0 +1,139 @@
+// Standard
+
+let I = \x.x
+let K = True
+let S = \x,y,z.x z (y z)
+let Omega = \x.x x
+let BigOmega = Omega Omega
+let Y = \g.(\x.g (x x)) (\x.g (x x))
+
+// Bool
+
+let True = \x,y.x
+let False = \x,y.y
+let And = \p,q.p q p
+let Or = \p,q.p p q
+let Not = \p,a,b.p b a
+let If = \p,a,b.p a b
+
+// Integer
+
+let 0 = \f,x.x
+let 1 = \f,x.f x
+let 2 = \f,x.f (f x)
+let 3 = \f,x.f (f (f x))
+let 4 = \f,x.f (f (f (f x)))
+let 5 = \f,x.f (f (f (f (f x))))
+let 6 = \f,x.f (f (f (f (f (f x)))))
+let 7 = \f,x.f (f (f (f (f (f (f x))))))
+let 8 = \f,x.f (f (f (f (f (f (f (f x)))))))
+let 9 = \f,x.f (f (f (f (f (f (f (f (f x))))))))
+
+let Successor = \n,f,x.f (n f x)
+let Add = \m,n,f,x.m f (n f x)
+let Multiply = \m,n,f.m (n f)
+let Decimal2 = \a,b.Add (Multiply a (Successor 9)) b
+let Predecessor = \n,f,x.n (\g,h.h (g f)) (\u.x) (\u.u)
+let Subtract = \m,n.n Predecessor m
+let IsZero = \n.n (\x.False) True
+let IsLessOrEqual = \m,n.IsZero (Subtract m n)
+let IsEqual = \m,n.And (IsLessOrEqual m n) (IsLessOrEqual n m)
+let Compare = \m,n,e,l,g.(IsLessOrEqual m n) ((IsLessOrEqual n m) e l) g
+let Even = \n.n Not True
+let Odd = \n.n Not False
+let Half = \n.Second (n (\x.(First x) (Pair False (Second x)) (Pair True (Successor (Second x)))) (Pair True 0))
+
+// List
+
+let Pair = \x,y,f.f x y
+let First = \p.p True
+let Second = \p.p False
+let Null = \x.True
+let IsNull = \p.p (\x,y.False)
+let Unpair = \f,p.p f
+
+let List0 = Null
+let List1 = \a.Pair a Null
+let List2 = \a,b.Pair a (Pair b Null)
+let List3 = \a,b,c.Pair a (Pair b (Pair c Null))
+let List4 = \a,b,c,d.Pair a (Pair b (Pair c (Pair d Null)))
+let List5 = \a,b,c,d,e.Pair a (Pair b (Pair c (Pair d (Pair e Null))))
+let List6 = \a,b,c,d,e,f.Pair a (Pair b (Pair c (Pair d (Pair e (Pair f Null)))))
+let List7 = \a,b,c,d,e,f,g.Pair a (Pair b (Pair c (Pair d (Pair e (Pair f (Pair g Null))))))
+let List8 = \a,b,c,d,e,f,g,h.Pair a (Pair b (Pair c (Pair d (Pair e (Pair f (Pair g (Pair h Null)))))))
+let List9 = \a,b,c,d,e,f,g,h,i.Pair a (Pair b (Pair c (Pair d (Pair e (Pair f (Pair g (Pair h (Pair i Null))))))))
+
+let Length = Y (\r,a,l.(IsNull l) a (r (Successor a) (Second l))) 0
+let Map = Y (\r,f,l.(IsNull l) l (Pair (f (First l)) (r f (Second l))))
+let FoldL = Y (\r,f,z,l.(IsNull l) z (r f (f z (First l)) (Second l)))
+let FoldR = Y (\r,f,z,l.(IsNull l) z (f (First l) (r f z (Second l))))
+let Init = Y (\r,l.(IsNull (Second l)) Null (Pair (First l) (r (Second l))))
+let Append = Y (\r,l,m.(IsNull l) m (Pair (First l) (r (Second l) m)))
+let Reverse = Y (\r,a,l.(IsNull l) a (r (Pair (First l) a) (Second l))) Null
+let Take = Y (\r,n,l.(Or (IsNull l) (IsZero n)) Null (Pair (First l) (r (Predecessor n) (Second l))))
+let Drop = Y (\r,n,l.(Or (IsNull l) (IsZero n)) l (r (Predecessor n) (Second l)))
+let SplitAt = Y (\r,n,l.(Or (IsNull l) (IsZero n)) (Pair Null l) (Unpair (\x,y.Pair (Pair (First l) x) y) (r (Predecessor n) (Second l))))
+let TakeWhile = Y (\r,p,l.(Or (IsNull l) (Not (p (First l)))) Null (Pair (First l) (r p (Second l))))
+let DropWhile = Y (\r,p,l.(Or (IsNull l) (Not (p (First l)))) l (r p (Second l)))
+let Span = Y (\r,p,l.(Or (IsNull l) (Not (p (First l)))) (Pair Null l) (Unpair (\x,y.Pair (Pair (First l) x) y) (r p (Second l))))
+let Break = \p.Span (\x.Not (p x))
+let Elem = Y (\r,t,l.(IsNull l) False ((IsEqual t (First l)) True (r t (Second l))))
+let Filter = Y (\r,p,l.(IsNull l) Null ((p (First l)) (Pair (First l) (r p (Second l))) (r p (Second l))))
+let Partition = Y (\r,p,l.(IsNull l) (Pair Null Null) (Unpair (\x,y.(p (First l)) (Pair (Pair (First l) x) y) (Pair x (Pair (First l) y))) (r p (Second l))))
+let IsEqualList = Y (\r,x,y.(IsNull x) (IsNull y) ((IsEqual (First x) (First y)) (r (Second x) (Second y)) False))
+let IsPrefixList = Y (\r,p,x.(IsNull p) True ((IsNull x) False ((IsEqual (First p) (First x)) (r (Second p) (Second x)) False)))
+let Zip = Y (\r,x,y.(Or (IsNull x) (IsNull y)) Null (Pair (Pair (First x) (First y)) (r (Second x) (Second y))))
+let ZipWith = Y (\r,f,x,y.(Or (IsNull x) (IsNull y)) Null (Pair (f (First x) (First y)) (r f (Second x) (Second y))))
+let Unzip = Y (\r,l.(IsNull l) (Pair Null Null) (Unpair (\x,y.Unpair (\a,b.Pair (Pair a x) (Pair b y)) (First l)) (r (Second l))))
+let Any = Y (\r,p,l.(IsNull l) False ((p (First l)) True (r p (Second l))))
+
+let QuickSortEx = Y (\r,f,l.(Or (IsNull l) (IsNull (Second l))) l (Unpair (\x,y.Append (r f x) (Pair (First l) (r f y))) (Partition (\x.f x (First l) True True False) (Second l))))
+let QuickSort = QuickSortEx Compare
+
+let MergeSortMerge = Y (\r,f,x,y.(IsNull x) y ((IsNull y) x (f (First x) (First y) (Pair (First x) (Pair (First x) (r f (Second x) (Second y)))) (Pair (First x) (r f (Second x) y)) (Pair (First y) (r f x (Second y))))))
+let MergeSortEx = Y (\r,f,l.(Or (IsNull l) (IsNull (Second l))) l (Unpair (\x,y.MergeSortMerge f (r f x) (r f y)) (SplitAt (Half (Length l)) l)))
+let MergeSort = MergeSortEx Compare
+
+// Maybe
+
+let Just = \x,f.f x
+let JustValue = \m.m (\x.x)
+let Nothing = \x.True
+let IsNothing = \m.m (\x.False)
+let IsJust = \x.Not (IsNothing x)
+let IfJust = \x,j,n.(IsNothing x) n (j (JustValue x))
+
+// Tree
+
+let Node = \x,l,r,f.f x l r
+let NodeValue = \n.n (\x,l,r.x)
+let NodeLeft = \n.n (\x,l,r.l)
+let NodeRight = \n.n (\x,l,r.r)
+let EmptyNode = \x.True
+let IsEmptyNode = \n.n (\x,l,r.False)
+let InsertNodeFullEx = Y (\r,t,f,n.IsEmptyNode n t (f (NodeValue t) (NodeValue n) t (Node (NodeValue n) (r t f (NodeLeft n)) (NodeRight n)) (Node (NodeValue n) (NodeLeft n) (r t f (NodeRight n)))))
+let InsertNodeFull = \t,n.InsertNodeFullEx t Compare n
+let InsertNodeEx = \t,f,n.InsertNodeFullEx (Node t EmptyNode EmptyNode) f n
+let InsertNode = \t,n.InsertNodeEx t Compare n
+let FindNodeEx = Y (\r,t,f,n.IsEmptyNode n Nothing (f t (NodeValue n) (Just (NodeValue n)) (r t f (NodeLeft n)) (r t f (NodeRight n))))
+let FindNode = \t,n.FindNodeEx t Compare n
+let ElemNodeEx = \t,f,n.IsJust (FindNodeEx t f n)
+let ElemNode = \t,n.ElemNodeEx t Compare n
+let DeleteNodeEx = Y (\r,t,f,n.IsEmptyNode n EmptyNode (f t (NodeValue n) (InsertNodeFull (NodeLeft n) (NodeRight n)) (Node (NodeValue n) (r t f (NodeLeft n)) (NodeRight n)) (Node (NodeValue n) (NodeLeft n) (r t f (NodeRight n)))))
+let DeleteNode = \t,n.DeleteNodeEx t Compare n
+let NodeToList = Y (\r,a,n.IsEmptyNode n a (r (Pair (NodeValue n) (r a (NodeRight n))) (NodeLeft n))) Null
+
+// Map
+
+let MapCompare = \f,x,y.f (First x) (First y)
+let EmptyMap = EmptyNode
+let IsEmptyMap = IsEmptyNode
+let InsertMapEx = \k,v,f,m.InsertNodeEx (Pair k v) (MapCompare f) m
+let InsertMap = \k,v,m.InsertMapEx k v Compare m
+let FindMapEx = \k,f,m.IfJust (FindNodeEx (Pair k 1) (MapCompare f) m) (\x.Just (Second x)) Nothing
+let FindMap = \k,m.FindMapEx k Compare m
+let ElemMapEx = \k,f,m.IsJust (FindMapEx k f m)
+let ElemMap = \k,m.ElemMapEx k Compare m
+let DeleteMapEx = \k,f,m.DeleteNodeEx (Pair k 1) (MapCompare f) m
+let DeleteMap = \k,m.DeleteMapEx k Compare m
+let MapToList = NodeToList
